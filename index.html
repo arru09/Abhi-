@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>arru – Premium Instagram Downloader</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--neon:#00f5d4;--neon2:#7b2fff;--neon3:#ff2fff;
+--bg:#04050d;--glass:rgba(255,255,255,0.04);--glass2:rgba(255,255,255,0.08);
+--border:rgba(0,245,212,0.18);--text:#e8eaf0;--muted:#7a7f9a;
+--font:'Syne',sans-serif;--body:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--body);overflow-x:hidden;line-height:1.5}
+
+/* BG PARTICLES */
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* NAVBAR */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  height:58px;display:flex;align-items:center;justify-content:center;
+  background:rgba(4,5,13,0.75);backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{
+  font-family:var(--font);font-size:1.15rem;font-weight:800;letter-spacing:0.08em;
+  background:linear-gradient(135deg,var(--neon),var(--neon2),var(--neon3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-decoration:none;user-select:none;
+}
+
+/* HERO */
+.hero{
+  min-height:100vh;display:flex;align-items:center;
+  padding:58px 5% 0;position:relative;z-index:1;
+}
+.hero-inner{
+  width:100%;max-width:1200px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:32px;
+}
+.hero-left{flex:1 1 0;min-width:0}
+.hero-badge{
+  display:inline-block;font-family:var(--font);font-size:0.72rem;font-weight:700;
+  letter-spacing:0.22em;text-transform:uppercase;color:var(--neon);
+  border:1px solid rgba(0,245,212,0.35);border-radius:100px;
+  padding:4px 14px;margin-bottom:14px;
+  background:rgba(0,245,212,0.07);
+  animation:badgePulse 3s ease-in-out infinite;
+}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 rgba(0,245,212,0.3)}50%{box-shadow:0 0 0 8px rgba(0,245,212,0)}}
+
+.hero-brand{
+  font-family:var(--font);font-size:clamp(3.2rem,8vw,6.5rem);
+  font-weight:800;line-height:0.95;letter-spacing:-0.02em;
+  background:linear-gradient(135deg,var(--neon) 0%,#fff 40%,var(--neon2) 80%,var(--neon3) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 40px rgba(0,245,212,0.4));
+  margin-bottom:16px;
+}
+.hero-title{
+  font-family:var(--font);font-size:clamp(1.1rem,2.5vw,1.6rem);
+  font-weight:700;color:var(--text);line-height:1.3;margin-bottom:12px;
+}
+.hero-desc{
+  font-size:clamp(0.85rem,1.5vw,1rem);color:var(--muted);
+  max-width:420px;line-height:1.65;margin-bottom:28px;
+}
+
+/* MAGNETIC CTA */
+.cta-wrap{display:inline-block;cursor:pointer}
+.cta-btn{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:14px 32px;border-radius:100px;
+  background:linear-gradient(135deg,var(--neon),var(--neon2));
+  color:#04050d;font-family:var(--font);font-weight:800;font-size:0.95rem;
+  letter-spacing:0.05em;text-decoration:none;
+  box-shadow:0 0 32px rgba(0,245,212,0.45),0 4px 24px rgba(123,47,255,0.3);
+  transition:box-shadow 0.3s,transform 0.2s;
+  position:relative;overflow:hidden;
+}
+.cta-btn::before{
+  content:'';position:absolute;top:-50%;left:-60%;width:40%;height:200%;
+  background:rgba(255,255,255,0.25);transform:skewX(-20deg);
+  transition:left 0.55s cubic-bezier(0.4,0,0.2,1);
+}
+.cta-btn:hover::before{left:130%}
+.cta-btn:hover{box-shadow:0 0 60px rgba(0,245,212,0.7),0 8px 40px rgba(123,47,255,0.5);transform:translateY(-2px)}
+.cta-arr{font-size:1.1rem;transition:transform 0.25s}
+.cta-btn:hover .cta-arr{transform:translateX(4px)}
+
+/* HERO RIGHT / IMAGE */
+.hero-right{flex:0 0 42%;display:flex;align-items:center;justify-content:center;position:relative}
+.hero-img-wrap{
+  position:relative;width:100%;max-width:420px;
+  animation:floatImg 4.5s ease-in-out infinite;
+}
+@keyframes floatImg{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-18px) rotate(1.5deg)}}
+.hero-img-wrap::before{
+  content:'';position:absolute;inset:-20px;border-radius:50%;
+  background:radial-gradient(ellipse,rgba(0,245,212,0.18) 0%,transparent 70%);
+  animation:glowPulse 3s ease-in-out infinite alternate;
+}
+@keyframes glowPulse{0%{opacity:0.5;transform:scale(0.95)}100%{opacity:1;transform:scale(1.05)}}
+.hero-img{
+  width:100%;height:auto;display:block;
+  filter:drop-shadow(0 0 50px rgba(0,245,212,0.35)) drop-shadow(0 20px 40px rgba(123,47,255,0.25));
+  border-radius:16px;
+}
+
+/* SECTIONS COMMON */
+section{position:relative;z-index:1;padding:64px 5%}
+.sec-label{
+  font-family:var(--font);font-size:0.68rem;font-weight:700;letter-spacing:0.25em;
+  text-transform:uppercase;color:var(--neon);margin-bottom:10px;display:block;
+}
+.sec-title{
+  font-family:var(--font);font-size:clamp(1.6rem,4vw,2.8rem);
+  font-weight:800;line-height:1.15;margin-bottom:10px;
+  background:linear-gradient(135deg,#fff 60%,var(--neon));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.sec-sub{color:var(--muted);font-size:0.95rem;max-width:520px;margin:0 auto 40px;text-align:center}
+
+/* FEATURES */
+.features{background:linear-gradient(180deg,var(--bg) 0%,rgba(10,8,30,0.9) 100%)}
+.features-head{text-align:center;margin-bottom:40px}
+.feat-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  max-width:1100px;margin:0 auto;
+}
+.feat-card{
+  background:var(--glass);border:1px solid var(--border);border-radius:20px;
+  padding:28px 22px;
+  backdrop-filter:blur(14px);
+  position:relative;overflow:hidden;
+  transition:transform 0.35s cubic-bezier(0.4,0,0.2,1),border-color 0.35s,box-shadow 0.35s;
+  cursor:default;
+}
+.feat-card::after{
+  content:'';position:absolute;top:-40%;left:-40%;width:80%;height:80%;
+  background:radial-gradient(circle,rgba(0,245,212,0.1),transparent 70%);
+  opacity:0;transition:opacity 0.4s,transform 0.4s;border-radius:50%;
+}
+.feat-card:hover::after{opacity:1;transform:translate(10%,10%)}
+.feat-card:hover{
+  transform:translateY(-6px) scale(1.02);
+  border-color:rgba(0,245,212,0.4);
+  box-shadow:0 8px 40px rgba(0,245,212,0.15),inset 0 0 30px rgba(0,245,212,0.04);
+}
+.feat-icon{width:44px;height:44px;margin-bottom:14px}
+.feat-icon svg{width:44px;height:44px}
+.feat-name{font-family:var(--font);font-weight:700;font-size:1.05rem;margin-bottom:6px;color:#fff}
+.feat-desc{font-size:0.85rem;color:var(--muted);line-height:1.55}
+
+/* WHY SECTION */
+.why{background:rgba(8,6,24,0.8)}
+.why-head{text-align:center;margin-bottom:36px}
+.why-row{
+  display:flex;gap:16px;max-width:1000px;margin:0 auto;
+  justify-content:center;
+}
+.why-block{
+  flex:1 1 0;
+  background:var(--glass);border:1px solid rgba(123,47,255,0.25);
+  border-radius:18px;padding:28px 20px;text-align:center;
+  transition:transform 0.35s,border-color 0.35s,box-shadow 0.35s;
+  position:relative;overflow:hidden;
+}
+.why-block:hover{
+  transform:translateY(-5px);
+  border-color:rgba(123,47,255,0.6);
+  box-shadow:0 0 30px rgba(123,47,255,0.2);
+}
+.why-num{
+  font-family:var(--font);font-size:2.2rem;font-weight:800;
+  background:linear-gradient(135deg,var(--neon2),var(--neon3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:8px;display:block;
+}
+.why-title{font-family:var(--font);font-weight:700;font-size:1.05rem;margin-bottom:6px;color:#fff}
+.why-desc{font-size:0.85rem;color:var(--muted);line-height:1.5}
+
+/* HOW IT WORKS */
+.how{background:linear-gradient(180deg,rgba(8,6,24,0.8) 0%,var(--bg) 100%)}
+.how-head{text-align:center;margin-bottom:36px}
+.how-row{
+  display:flex;align-items:flex-start;gap:0;max-width:960px;margin:0 auto;
+  position:relative;
+}
+.how-step{
+  flex:1 1 0;text-align:center;padding:0 12px;position:relative;z-index:1;
+}
+.step-num{
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,var(--neon),var(--neon2));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font);font-weight:800;font-size:1.1rem;color:#04050d;
+  margin:0 auto 14px;
+  box-shadow:0 0 24px rgba(0,245,212,0.4);
+  position:relative;z-index:2;
+}
+.step-title{font-family:var(--font);font-weight:700;font-size:1rem;margin-bottom:6px;color:#fff}
+.step-desc{font-size:0.83rem;color:var(--muted);line-height:1.5}
+.connector{
+  position:absolute;top:26px;left:calc(33.33% + 26px);width:calc(33.33% - 52px);
+  height:2px;background:linear-gradient(90deg,var(--neon),var(--neon2));
+  transform-origin:left;transform:scaleX(0);
+  transition:transform 0.8s cubic-bezier(0.4,0,0.2,1);z-index:0;
+}
+.connector2{left:calc(66.66% + 26px)}
+.connector.active,.connector2.active{transform:scaleX(1)}
+
+/* FINAL CTA */
+.final-cta{padding:56px 5%;text-align:center}
+.cta-glass{
+  max-width:720px;margin:0 auto;
+  background:linear-gradient(135deg,rgba(0,245,212,0.07),rgba(123,47,255,0.07));
+  border:1px solid rgba(0,245,212,0.25);border-radius:28px;
+  padding:52px 40px;
+  box-shadow:0 0 60px rgba(0,245,212,0.08),0 0 100px rgba(123,47,255,0.06);
+  backdrop-filter:blur(20px);
+}
+.cta-glass .sec-title{text-align:center;margin-bottom:10px}
+.cta-glass p{color:var(--muted);margin-bottom:28px;font-size:0.95rem}
+
+/* FOOTER */
+footer{
+  text-align:center;padding:20px;
+  font-size:0.78rem;color:var(--muted);
+  border-top:1px solid rgba(255,255,255,0.06);
+  position:relative;z-index:1;
+}
+
+/* SCROLL REVEAL */
+.reveal{opacity:0;transform:translateY(32px) scale(0.98);transition:opacity 0.7s cubic-bezier(0.4,0,0.2,1),transform 0.7s cubic-bezier(0.4,0,0.2,1)}
+.reveal.visible{opacity:1;transform:translateY(0) scale(1)}
+.reveal-up{opacity:0;transform:translateY(-20px);transition:opacity 0.6s,transform 0.6s}
+.reveal-up.visible{opacity:1;transform:translateY(0)}
+
+/* WORD REVEAL */
+.word-reveal .word{display:inline-block;opacity:0;transform:translateY(20px);transition:opacity 0.5s,transform 0.5s}
+.word-reveal.visible .word{opacity:1;transform:translateY(0)}
+
+/* SHIMMER */
+.shimmer-text{
+  background:linear-gradient(90deg,var(--text) 0%,var(--neon) 40%,var(--text) 80%);
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:shimmer 4s linear infinite;
+}
+@keyframes shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .feat-grid{grid-template-columns:repeat(2,1fr)}
+  .hero-brand{font-size:clamp(2.4rem,10vw,4rem)}
+}
+@media(max-width:600px){
+  .hero-inner{flex-direction:row;flex-wrap:nowrap;gap:16px}
+  .hero-left{flex:1 1 0;min-width:0}
+  .hero-right{flex:0 0 38%;min-width:0}
+  .hero-brand{font-size:clamp(1.8rem,9vw,2.8rem)}
+  .hero-title{font-size:0.9rem}
+  .hero-desc{font-size:0.78rem;max-width:100%;margin-bottom:18px}
+  .cta-btn{padding:11px 20px;font-size:0.82rem}
+  .feat-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .feat-card{padding:18px 14px}
+  .why-row{flex-direction:row;flex-wrap:nowrap;gap:10px}
+  .why-block{padding:18px 12px}
+  .how-row{flex-direction:row;flex-wrap:nowrap}
+  .how-step{padding:0 6px}
+  section{padding:48px 4%}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<nav>
+  <a href="index.html" class="nav-logo">arru</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <span class="hero-badge reveal">WELCOME TO IGD OX</span>
+      <div class="hero-brand word-reveal" id="brandText">IGD OX</div>
+      <h1 class="hero-title reveal" style="transition-delay:0.1s">Download Instagram Reels &amp; Posts Instantly</h1>
+      <p class="hero-desc reveal" style="transition-delay:0.2s">The fastest, cleanest way to save any Instagram content. No login. No limits. Just paste and download.</p>
+      <div class="cta-wrap reveal" style="transition-delay:0.3s" id="magnetBtn">
+        <a href="app.html" class="cta-btn">
+          Start Downloading <span class="cta-arr">&#8594;</span>
+        </a>
+      </div>
+    </div>
+    <div class="hero-right reveal" style="transition-delay:0.2s">
+      <div class="hero-img-wrap">
+        <img src="solo.png" alt="IGD OX" class="hero-img" onerror="this.style.display='none';this.parentNode.innerHTML=heroFallback()">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features">
+  <div class="features-head">
+    <span class="sec-label reveal">What We Offer</span>
+    <h2 class="sec-title reveal">Everything You Need</h2>
+    <p class="sec-sub reveal">Six powerful reasons why IGD OX is the best Instagram downloader.</p>
+  </div>
+  <div class="feat-grid">
+    <!-- Card 1 -->
+    <div class="feat-card reveal" style="transition-delay:0.05s">
+      <div class="feat-icon">
+        <svg viewBox="0 0 44 44" fill="none"><circle cx="22" cy="22" r="20" stroke="url(#g1)" stroke-width="1.5"/><path d="M22 12v12l7 4" stroke="url(#g1)" stroke-width="2" stroke-linecap="round"/><defs><linearGradient id="g1" x1="4" y1="4" x2="40" y2="40"><stop stop-color="#00f5d4"/><stop offset="1" stop-color="#7b2fff"/></linearGradient></defs></svg>
+      </div>
+      <div class="feat-name">Fast Download</div>
+      <div class="feat-desc">Lightning-fast processing gets your content ready in milliseconds.</div>
+    </div>
+    <!-- Card 2 -->
+    <div class="feat-card reveal" style="transition-delay:0.1s">
+      <div class="feat-icon">
+        <svg viewBox="0 0 44 44" fill="none"><rect x="4" y="10" width="36" height="26" rx="4" stroke="url(#g2)" stroke-width="1.5"/><circle cx="22" cy="23" r="7" stroke="url(#g2)" stroke-width="1.5"/><circle cx="22" cy="23" r="3" fill="url(#g2)" opacity="0.7"/><defs><linearGradient id="g2" x1="4" y1="10" x2="40" y2="36"><stop stop-color="#00f5d4"/><stop offset="1" stop-color="#ff2fff"/></linearGradient></defs></svg>
+      </div>
+      <div class="feat-name">HD Quality</div>
+      <div class="feat-desc">Download in original HD resolution — no compression, no quality loss.</div>
+    </div>
+    <!-- Card 3 -->
+    <div class="feat-card reveal" style="transition-delay:0.15s">
+      <div class="feat-icon">
+        <svg viewBox="0 0 44 44" fill="none"><path d="M22 6l4 8h8l-6.5 6 2.5 8L22 24l-8 4 2.5-8L10 14h8z" stroke="url(#g3)" stroke-width="1.5" stroke-linejoin="round"/><defs><linearGradient id="g3" x1="10" y1="6" x2="34" y2="34"><stop stop-color="#7b2fff"/><stop offset="1" stop-color="#00f5d4"/></linearGradient></defs></svg>
+      </div>
+      <div class="feat-name">No Login Required</div>
+      <div class="feat-desc">Zero accounts, zero sign-ups. Your privacy stays completely intact.</div>
+    </div>
+    <!-- Card 4 -->
+    <div class="feat-card reveal" style="transition-delay:0.2s">
+      <div class="feat-icon">
+        <svg viewBox="0 0 44 44" fill="none"><path d="M8 22C8 14.268 14.268 8 22 8s14 6.268 14 14-6.268 14-14 14S8 29.732 8 22z" stroke="url(#g4)" stroke-width="1.5"/><path d="M16 22l4 4 8-8" stroke="url(#g4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="g4" x1="8" y1="8" x2="36" y2="36"><stop stop-color="#00f5d4"/><stop offset="1" stop-color="#7b2fff"/></linearGradient></defs></svg>
+      </div>
+      <div class="feat-name">100% Free</div>
+      <div class="feat-desc">No subscriptions. No hidden charges. Forever free for everyone.</div>
+    </div>
+    <!-- Card 5 -->
+    <div class="feat-card reveal" style="transition-delay:0.25s">
+      <div class="feat-icon">
+        <svg viewBox="0 0 44 44" fill="none"><path d="M22 6l12 5v10c0 8-5 13-12 15C15 34 10 29 10 21V11z" stroke="url(#g5)" stroke-width="1.5" stroke-linejoin="round"/><path d="M17 22l3 3 7-7" stroke="url(#g5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="g5" x1="10" y1="6" x2="34" y2="36"><stop stop-color="#ff2fff"/><stop offset="1" stop-color="#00f5d4"/></linearGradient></defs></svg>
+      </div>
+      <div class="feat-name">Secure</div>
+      <div class="feat-desc">Your data is never stored. Every request is processed and discarded immediately.</div>
+    </div>
+    <!-- Card 6 -->
+    <div class="feat-card reveal" style="transition-delay:0.3s">
+      <div class="feat-icon">
+        <svg viewBox="0 0 44 44" fill="none"><path d="M10 32V20a4 4 0 014-4h16a4 4 0 014 4v12" stroke="url(#g6)" stroke-width="1.5" stroke-linecap="round"/><path d="M22 12V8M18 8h8" stroke="url(#g6)" stroke-width="1.5" stroke-linecap="round"/><path d="M14 32v-8h6v8M24 32v-6h6v6" stroke="url(#g6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="g6" x1="10" y1="8" x2="34" y2="36"><stop stop-color="#7b2fff"/><stop offset="1" stop-color="#ff2fff"/></linearGradient></defs></svg>
+      </div>
+      <div class="feat-name">Unlimited Downloads</div>
+      <div class="feat-desc">No daily caps, no rate limiting. Download as much as you want.</div>
+    </div>
+  </div>
+</section>
+
+<section class="why">
+  <div class="why-head">
+    <span class="sec-label reveal">Why IGD OX</span>
+    <h2 class="sec-title reveal">Built Different</h2>
+    <p class="sec-sub reveal">Three things that set us apart from every other downloader out there.</p>
+  </div>
+  <div class="why-row">
+    <div class="why-block reveal" style="transition-delay:0.05s">
+      <span class="why-num shimmer-text">01</span>
+      <div class="why-title">Lightning Speed</div>
+      <div class="why-desc">Optimized pipeline processes your request in under a second, every time.</div>
+    </div>
+    <div class="why-block reveal" style="transition-delay:0.1s">
+      <span class="why-num shimmer-text">02</span>
+      <div class="why-title">Zero Ads</div>
+      <div class="why-desc">Pure tool experience. No banners, no pop-ups, no distractions ever.</div>
+    </div>
+    <div class="why-block reveal" style="transition-delay:0.15s">
+      <span class="why-num shimmer-text">03</span>
+      <div class="why-title">Clean UI</div>
+      <div class="why-desc">Designed to be effortless. Three taps and your content is downloaded.</div>
+    </div>
+  </div>
+</section>
+
+<section class="how">
+  <div class="how-head">
+    <span class="sec-label reveal">How It Works</span>
+    <h2 class="sec-title reveal">Three Simple Steps</h2>
+    <p class="sec-sub reveal">Downloading Instagram content has never been this smooth.</p>
+  </div>
+  <div class="how-row" id="howRow">
+    <div class="how-step reveal" style="transition-delay:0s">
+      <div class="step-num">1</div>
+      <div class="step-title">Copy Link</div>
+      <div class="step-desc">Open Instagram and copy the post or reel URL from the share menu.</div>
+    </div>
+    <div class="connector" id="con1"></div>
+    <div class="how-step reveal" style="transition-delay:0.15s">
+      <div class="step-num">2</div>
+      <div class="step-title">Paste Link</div>
+      <div class="step-desc">Paste the URL into the input field on our tool page.</div>
+    </div>
+    <div class="connector connector2" id="con2"></div>
+    <div class="how-step reveal" style="transition-delay:0.3s">
+      <div class="step-num">3</div>
+      <div class="step-title">Download</div>
+      <div class="step-desc">Hit fetch, preview your media, and download instantly.</div>
+    </div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <div class="cta-glass reveal">
+    <span class="sec-label" style="text-align:center;display:block">Ready?</span>
+    <h2 class="sec-title" style="text-align:center">Start Downloading Now</h2>
+    <p>Join thousands who already use IGD OX to save their favorite content.</p>
+    <div class="cta-wrap" id="magnetBtn2">
+      <a href="app.html" class="cta-btn">
+        Open Downloader <span class="cta-arr">&#8594;</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>&copy; 2025 EVIL PRIYANSHU &mdash; IGD OX. Crafted with precision.</span>
+</footer>
+
+<script>
+// BG PARTICLES
+(function(){
+  const c=document.getElementById('bg-canvas');
+  const ctx=c.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  for(let i=0;i<80;i++) pts.push({x:Math.random()*9999,y:Math.random()*9999,vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3,r:Math.random()*1.5+0.3,a:Math.random()});
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const t=Date.now()*0.0003;
+    pts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=W;if(p.x>W)p.x=0;
+      if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+      const hue=p.a<0.5?'0,245,212':'123,47,255';
+      ctx.beginPath();ctx.arc(p.x%W,p.y%H,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${hue},${0.25+Math.sin(t+p.a*10)*0.15})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  // init positions within canvas
+  pts.forEach(p=>{p.x=Math.random()*W;p.y=Math.random()*H});
+  draw();
+})();
+
+// WORD REVEAL
+function setupWordReveal(){
+  document.querySelectorAll('.word-reveal').forEach(el=>{
+    const text=el.textContent.trim();
+    el.innerHTML=text.split('').map((ch,i)=>`<span class="word" style="transition-delay:${i*0.04}s">${ch}</span>`).join('');
+  });
+}
+setupWordReveal();
+
+// INTERSECTION OBSERVER
+const revealEls=document.querySelectorAll('.reveal,.word-reveal');
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      setTimeout(()=>e.target.classList.add('visible'),10);
+    } else {
+      e.target.classList.remove('visible');
+    }
+  });
+},{threshold:0.12,rootMargin:'-30px 0px'});
+revealEls.forEach(el=>observer.observe(el));
+
+// CONNECTOR ANIMATION
+const howObs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      setTimeout(()=>{document.getElementById('con1').classList.add('active')},400);
+      setTimeout(()=>{document.getElementById('con2').classList.add('active')},700);
+    } else {
+      document.getElementById('con1').classList.remove('active');
+      document.getElementById('con2').classList.remove('active');
+    }
+  });
+},{threshold:0.3});
+const howRow=document.getElementById('howRow');
+if(howRow) howObs.observe(howRow);
+
+// MAGNETIC BUTTONS
+function magnetic(id){
+  const wrap=document.getElementById(id);
+  if(!wrap) return;
+  const btn=wrap.querySelector('.cta-btn');
+  wrap.addEventListener('mousemove',e=>{
+    const r=btn.getBoundingClientRect();
+    const x=(e.clientX-r.left-r.width/2)*0.25;
+    const y=(e.clientY-r.top-r.height/2)*0.25;
+    btn.style.transform=`translate(${x}px,${y}px) translateY(-2px)`;
+  });
+  wrap.addEventListener('mouseleave',()=>{btn.style.transform=''});
+}
+magnetic('magnetBtn');magnetic('magnetBtn2');
+
+// PARALLAX
+window.addEventListener('scroll',()=>{
+  const sy=window.scrollY;
+  const hero=document.querySelector('.hero-img-wrap');
+  if(hero) hero.style.transform=`translateY(${sy*0.04}px)`;
+});
+
+function heroFallback(){
+  return `<div style="width:100%;height:300px;display:flex;align-items:center;justify-content:center;background:rgba(0,245,212,0.05);border-radius:16px;border:1px dashed rgba(0,245,212,0.3);font-family:'Syne',sans-serif;color:rgba(0,245,212,0.6);font-size:1rem;letter-spacing:0.1em">IGD OX</div>`;
+}
+</script>
+</body>
+</html>

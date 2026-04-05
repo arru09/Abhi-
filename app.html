@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGD OX – Instagram Downloader Tool</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --neon:#00f5d4;--neon2:#7b2fff;--neon3:#ff2fff;
+  --bg:#04050d;--glass:rgba(255,255,255,0.04);--glass2:rgba(255,255,255,0.07);
+  --border:rgba(0,245,212,0.18);--text:#e8eaf0;--muted:#7a7f9a;
+  --err:#ff4466;--font:'Syne',sans-serif;--body:'DM Sans',sans-serif;
+}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--body);
+  overflow-x:hidden;line-height:1.5;min-height:100vh;
+}
+
+/* ANIMATED BG */
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.bg-glow{
+  position:fixed;z-index:0;pointer-events:none;border-radius:50%;filter:blur(100px);
+}
+.bg-glow-1{width:500px;height:500px;background:rgba(0,245,212,0.06);top:-100px;right:-100px;animation:driftA 12s ease-in-out infinite alternate}
+.bg-glow-2{width:400px;height:400px;background:rgba(123,47,255,0.07);bottom:-80px;left:-80px;animation:driftB 15s ease-in-out infinite alternate}
+.bg-glow-3{width:300px;height:300px;background:rgba(255,47,255,0.04);top:40%;left:40%;animation:driftC 18s ease-in-out infinite alternate}
+@keyframes driftA{0%{transform:translate(0,0)}100%{transform:translate(-60px,80px)}}
+@keyframes driftB{0%{transform:translate(0,0)}100%{transform:translate(80px,-60px)}}
+@keyframes driftC{0%{transform:translate(0,0) scale(1)}100%{transform:translate(-40px,40px) scale(1.3)}}
+
+/* NAVBAR */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  height:58px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;
+  background:rgba(4,5,13,0.8);backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{
+  font-family:var(--font);font-size:1.05rem;font-weight:800;letter-spacing:0.08em;
+  background:linear-gradient(135deg,var(--neon),var(--neon2),var(--neon3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-decoration:none;user-select:none;
+}
+.nav-menu-btn{
+  width:44px;height:44px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:5px;cursor:pointer;border:none;background:transparent;
+  padding:6px;border-radius:10px;
+  transition:background 0.2s;flex-shrink:0;
+}
+.nav-menu-btn:hover{background:rgba(0,245,212,0.1)}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--neon);display:block;
+  transition:transform 0.3s,background 0.3s}
+.nav-menu-btn:hover .dot{background:var(--neon3)}
+
+/* MAIN LAYOUT */
+main{
+  position:relative;z-index:1;
+  padding:76px 16px 40px;
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+}
+
+/* TOP TITLE */
+.tool-head{text-align:center;margin-bottom:28px}
+.tool-label{
+  display:inline-block;font-family:var(--font);font-size:0.68rem;font-weight:700;
+  letter-spacing:0.22em;text-transform:uppercase;color:var(--neon);
+  border:1px solid rgba(0,245,212,0.3);border-radius:100px;
+  padding:4px 14px;margin-bottom:10px;
+  background:rgba(0,245,212,0.07);
+  animation:badgePulse 3s ease-in-out infinite;
+}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 rgba(0,245,212,0.3)}50%{box-shadow:0 0 0 8px rgba(0,245,212,0)}}
+
+.tool-title{
+  font-family:var(--font);font-size:clamp(1.6rem,5vw,2.6rem);
+  font-weight:800;line-height:1.15;
+  background:linear-gradient(135deg,#fff 50%,var(--neon));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:6px;
+  animation:titleReveal 0.8s cubic-bezier(0.4,0,0.2,1) both;
+}
+@keyframes titleReveal{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.tool-sub{
+  color:var(--muted);font-size:0.9rem;
+  animation:titleReveal 0.8s 0.15s cubic-bezier(0.4,0,0.2,1) both;
+}
+
+/* TOOL CONTAINER */
+.tool-box{
+  width:100%;max-width:760px;
+  position:relative;
+  animation:boxReveal 0.9s 0.25s cubic-bezier(0.4,0,0.2,1) both;
+}
+@keyframes boxReveal{from{opacity:0;transform:translateY(28px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* ANIMATED BORDER */
+.tool-border{
+  position:absolute;inset:-2px;border-radius:26px;
+  background:linear-gradient(135deg,var(--neon),var(--neon2),var(--neon3),var(--neon));
+  background-size:300% 300%;
+  animation:borderGlow 5s linear infinite;
+  z-index:0;
+}
+@keyframes borderGlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+.tool-inner{
+  position:relative;z-index:1;
+  background:linear-gradient(145deg,rgba(8,6,30,0.92),rgba(4,5,13,0.97));
+  border-radius:24px;
+  padding:32px 28px;
+  backdrop-filter:blur(24px);
+  box-shadow:0 0 60px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.08),inset 0 0 40px rgba(0,245,212,0.02);
+}
+
+/* INPUT ROW */
+.input-row{
+  display:flex;align-items:center;gap:10px;margin-bottom:20px;
+}
+.url-input{
+  flex:1 1 0;min-width:0;
+  height:50px;border-radius:14px;
+  background:rgba(255,255,255,0.05);
+  border:1.5px solid rgba(0,245,212,0.2);
+  color:var(--text);font-family:var(--body);font-size:0.9rem;
+  padding:0 16px;
+  outline:none;
+  transition:border-color 0.3s,box-shadow 0.3s;
+}
+.url-input::placeholder{color:var(--muted)}
+.url-input:focus{
+  border-color:var(--neon);
+  box-shadow:0 0 0 3px rgba(0,245,212,0.15),0 0 20px rgba(0,245,212,0.1);
+}
+.fetch-btn{
+  flex-shrink:0;height:50px;padding:0 24px;border-radius:14px;
+  background:linear-gradient(135deg,var(--neon),var(--neon2));
+  color:#04050d;font-family:var(--font);font-weight:800;font-size:0.9rem;
+  border:none;cursor:pointer;
+  box-shadow:0 0 24px rgba(0,245,212,0.3);
+  transition:box-shadow 0.25s,transform 0.15s;
+  position:relative;overflow:hidden;letter-spacing:0.05em;
+  white-space:nowrap;
+}
+.fetch-btn::before{
+  content:'';position:absolute;top:-50%;left:-60%;width:40%;height:200%;
+  background:rgba(255,255,255,0.25);transform:skewX(-20deg);
+  transition:left 0.55s cubic-bezier(0.4,0,0.2,1);
+}
+.fetch-btn:hover::before{left:130%}
+.fetch-btn:hover{box-shadow:0 0 40px rgba(0,245,212,0.55);transform:translateY(-2px)}
+.fetch-btn:active{transform:scale(0.97)}
+
+/* LOADER */
+.loader{
+  display:none;justify-content:center;align-items:center;
+  gap:10px;padding:20px 0;
+}
+.loader.show{display:flex}
+.spin{
+  width:32px;height:32px;border-radius:50%;
+  border:3px solid rgba(0,245,212,0.15);
+  border-top-color:var(--neon);
+  animation:spin 0.75s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-text{font-size:0.85rem;color:var(--muted);font-family:var(--font)}
+
+/* ERROR */
+.error-box{
+  display:none;align-items:center;gap:12px;
+  background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.35);
+  border-radius:12px;padding:14px 16px;margin-bottom:16px;
+  animation:errShake 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+.error-box.show{display:flex}
+@keyframes errShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.error-icon{flex-shrink:0;width:20px;height:20px}
+.error-icon svg{width:20px;height:20px}
+.error-text{font-size:0.87rem;color:var(--err);font-family:var(--font);font-weight:600}
+
+/* PREVIEW */
+.preview-area{
+  display:none;flex-direction:column;gap:16px;
+}
+.preview-area.show{display:flex}
+.preview-label{
+  font-family:var(--font);font-size:0.72rem;font-weight:700;letter-spacing:0.18em;
+  text-transform:uppercase;color:var(--neon);
+}
+.media-wrap{
+  width:100%;border-radius:16px;overflow:hidden;
+  background:rgba(0,0,0,0.3);
+  border:1px solid rgba(0,245,212,0.15);
+  position:relative;
+}
+.media-wrap video,.media-wrap img{
+  width:100%;height:auto;display:block;
+  object-fit:contain;max-height:480px;
+}
+
+/* DOWNLOAD BTN */
+.dl-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  height:50px;border-radius:14px;
+  background:linear-gradient(135deg,var(--neon2),var(--neon3));
+  color:#fff;font-family:var(--font);font-weight:800;font-size:0.9rem;
+  border:none;cursor:pointer;letter-spacing:0.05em;
+  box-shadow:0 0 24px rgba(123,47,255,0.35);
+  transition:box-shadow 0.25s,transform 0.15s;
+  position:relative;overflow:hidden;
+}
+.dl-btn::before{
+  content:'';position:absolute;top:-50%;left:-60%;width:40%;height:200%;
+  background:rgba(255,255,255,0.2);transform:skewX(-20deg);
+  transition:left 0.55s cubic-bezier(0.4,0,0.2,1);
+}
+.dl-btn:hover::before{left:130%}
+.dl-btn:hover{box-shadow:0 0 40px rgba(123,47,255,0.55);transform:translateY(-2px)}
+.dl-btn:active{transform:scale(0.97)}
+.dl-icon{width:18px;height:18px;flex-shrink:0}
+.dl-icon svg{width:18px;height:18px;stroke:#fff}
+
+/* INFO CARDS */
+.info-row{
+  display:flex;gap:12px;margin-top:20px;
+}
+.info-card{
+  flex:1 1 0;background:rgba(0,245,212,0.04);border:1px solid rgba(0,245,212,0.12);
+  border-radius:14px;padding:14px 16px;text-align:center;
+  transition:border-color 0.3s,box-shadow 0.3s;
+}
+.info-card:hover{border-color:rgba(0,245,212,0.35);box-shadow:0 0 20px rgba(0,245,212,0.08)}
+.info-card-num{
+  font-family:var(--font);font-size:1.4rem;font-weight:800;
+  background:linear-gradient(135deg,var(--neon),var(--neon2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.info-card-label{font-size:0.78rem;color:var(--muted)}
+
+/* MODAL OVERLAY */
+.modal-overlay{
+  position:fixed;inset:0;z-index:2000;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(4,5,13,0.75);backdrop-filter:blur(10px);
+  opacity:0;pointer-events:none;
+  transition:opacity 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{
+  width:90%;max-width:380px;
+  background:linear-gradient(145deg,rgba(10,8,30,0.97),rgba(4,5,13,0.99));
+  border:1px solid rgba(0,245,212,0.25);border-radius:24px;
+  padding:32px 28px;
+  box-shadow:0 0 60px rgba(0,245,212,0.12),0 0 120px rgba(123,47,255,0.08);
+  transform:scale(0.92) translateY(20px);
+  transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+.modal-overlay.open .modal{transform:scale(1) translateY(0)}
+.modal-head{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;
+}
+.modal-title{font-family:var(--font);font-size:1.2rem;font-weight:800;
+  background:linear-gradient(135deg,var(--neon),var(--neon2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.modal-close{
+  width:36px;height:36px;border:none;background:rgba(255,255,255,0.06);
+  border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--muted);font-size:1.1rem;transition:background 0.2s,color 0.2s;
+  font-family:sans-serif;
+}
+.modal-close:hover{background:rgba(255,68,102,0.15);color:var(--err)}
+.modal-links{display:flex;flex-direction:column;gap:12px}
+.modal-link{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 18px;border-radius:14px;
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
+  text-decoration:none;color:var(--text);
+  transition:background 0.25s,border-color 0.25s,transform 0.25s,box-shadow 0.25s;
+}
+.modal-link:hover{
+  background:rgba(0,245,212,0.08);border-color:rgba(0,245,212,0.35);
+  transform:translateX(4px);
+  box-shadow:0 0 20px rgba(0,245,212,0.1);
+}
+.modal-link-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal-link-icon svg{width:22px;height:22px}
+.tg-icon{background:rgba(0,136,255,0.15)}
+.ig-icon{background:rgba(255,47,180,0.15)}
+.modal-link-info{}
+.modal-link-name{font-family:var(--font);font-weight:700;font-size:0.9rem;margin-bottom:2px}
+.modal-link-handle{font-size:0.78rem;color:var(--muted)}
+
+/* FOOTER */
+.app-footer{
+  text-align:center;margin-top:auto;padding-top:24px;
+  font-size:0.75rem;color:var(--muted);position:relative;z-index:1;
+}
+
+/* RESPONSIVE */
+@media(max-width:500px){
+  .tool-inner{padding:20px 14px}
+  .info-row{gap:8px}
+  .info-card{padding:10px 8px}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+<div class="bg-glow bg-glow-3"></div>
+<canvas id="bg-canvas"></canvas>
+
+<nav>
+  <a href="index.html" class="nav-logo">arru</a>
+  <button class="nav-menu-btn" id="menuBtn" aria-label="Menu">
+    <span class="dot"></span>
+    <span class="dot"></span>
+    <span class="dot"></span>
+  </button>
+</nav>
+
+<main>
+  <div class="tool-head">
+    <div class="tool-label">Premium Tool</div>
+    <h1 class="tool-title">Instagram Downloader</h1>
+    <p class="tool-sub">Paste any Instagram link and download instantly.</p>
+  </div>
+
+  <div class="tool-box">
+    <div class="tool-border"></div>
+    <div class="tool-inner">
+
+      <!-- ERROR -->
+      <div class="error-box" id="errorBox">
+        <div class="error-icon">
+          <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#ff4466" stroke-width="1.5"/><path d="M10 6v5M10 14h.01" stroke="#ff4466" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <div class="error-text" id="errorText">Please enter a valid Instagram URL.</div>
+      </div>
+
+      <!-- INPUT -->
+      <div class="input-row">
+        <input type="url" class="url-input" id="urlInput" placeholder="Paste Instagram URL here..." autocomplete="off" spellcheck="false">
+        <button class="fetch-btn" id="fetchBtn">Fetch</button>
+      </div>
+
+      <!-- LOADER -->
+      <div class="loader" id="loader">
+        <div class="spin"></div>
+        <span class="loader-text">Fetching media...</span>
+      </div>
+
+      <!-- PREVIEW -->
+      <div class="preview-area" id="previewArea">
+        <span class="preview-label">Preview</span>
+        <div class="media-wrap" id="mediaWrap"></div>
+        <button class="dl-btn" id="dlBtn">
+          <span class="dl-icon"><svg viewBox="0 0 18 18" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v10M5 8l4 4 4-4"/><path d="M2 14h14"/></svg></span>
+          Download Media
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="info-row">
+    <div class="info-card">
+      <div class="info-card-num">100%</div>
+      <div class="info-card-label">Free Forever</div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-num">HD</div>
+      <div class="info-card-label">Quality</div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-num">0</div>
+      <div class="info-card-label">Ads</div>
+    </div>
+  </div>
+
+  <div class="app-footer">
+    &copy; 2025 arru &mdash; IGD OX
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">Meet Developer</span>
+      <button class="modal-close" id="modalClose">&#10005;</button>
+    </div>
+    <div class="modal-links">
+      <a href="https://t.me/+TaX58-27p9U0MzNl" target="_blank" rel="noopener" class="modal-link">
+        <div class="modal-link-icon tg-icon">
+          <svg viewBox="0 0 22 22" fill="none"><path d="M2 11l2.5 8.5L8 16l5 4 6-17L2 11z" stroke="#0088ff" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 16l1-4 5-5" stroke="#0088ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="modal-link-info">
+          <div class="modal-link-name">Telegram</div>
+          <div class="modal-link-handle">Join Channel</div>
+        </div>
+      </a>
+      <a href="https://www.instagram.com/evil.priyanshu?igsh=enBhNTVpaWN6Z3Fl" target="_blank" rel="noopener" class="modal-link">
+        <div class="modal-link-icon ig-icon">
+          <svg viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="16" height="16" rx="5" stroke="url(#iggrad)" stroke-width="1.5"/><circle cx="11" cy="11" r="4" stroke="url(#iggrad)" stroke-width="1.5"/><circle cx="16.5" cy="5.5" r="1" fill="#ff2fb0"/><defs><linearGradient id="iggrad" x1="3" y1="3" x2="19" y2="19"><stop stop-color="#f9a825"/><stop offset="0.5" stop-color="#ff2fb0"/><stop offset="1" stop-color="#7b2fff"/></linearGradient></defs></svg>
+        </div>
+        <div class="modal-link-info">
+          <div class="modal-link-name">Instagram</div>
+          <div class="modal-link-handle">@evil.priyanshu</div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+// BG PARTICLES
+(function(){
+  const c=document.getElementById('bg-canvas');
+  const ctx=c.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  for(let i=0;i<60;i++) pts.push({x:Math.random(),y:Math.random(),vx:(Math.random()-0.5)*0.0002,vy:(Math.random()-0.5)*0.0002,r:Math.random()*1.2+0.3,a:Math.random()});
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const t=Date.now()*0.0003;
+    pts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=1;if(p.x>1)p.x=0;
+      if(p.y<0)p.y=1;if(p.y>1)p.y=0;
+      const hue=p.a<0.5?'0,245,212':'123,47,255';
+      ctx.beginPath();ctx.arc(p.x*W,p.y*H,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${hue},${0.2+Math.sin(t+p.a*8)*0.12})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// MODAL
+const overlay=document.getElementById('modalOverlay');
+const menuBtn=document.getElementById('menuBtn');
+const closeBtn=document.getElementById('modalClose');
+menuBtn.addEventListener('click',()=>overlay.classList.add('open'));
+closeBtn.addEventListener('click',()=>overlay.classList.remove('open'));
+overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.classList.remove('open')});
+
+// TOOL LOGIC
+const urlInput=document.getElementById('urlInput');
+const fetchBtn=document.getElementById('fetchBtn');
+const loader=document.getElementById('loader');
+const errorBox=document.getElementById('errorBox');
+const errorText=document.getElementById('errorText');
+const previewArea=document.getElementById('previewArea');
+const mediaWrap=document.getElementById('mediaWrap');
+const dlBtn=document.getElementById('dlBtn');
+
+let currentMediaUrl='';
+let currentType='';
+
+function showError(msg){
+  errorBox.classList.add('show');
+  errorText.textContent=msg;
+  previewArea.classList.remove('show');
+  loader.classList.remove('show');
+}
+function hideError(){
+  errorBox.classList.remove('show');
+}
+function showLoader(){
+  loader.classList.add('show');
+  previewArea.classList.remove('show');
+}
+function hideLoader(){
+  loader.classList.remove('show');
+}
+
+function extractMediaUrl(data){
+  // Try multiple known response shapes
+  const tries=[
+    ()=>data.url,
+    ()=>data.video_url,
+    ()=>data.media,
+    ()=>data.thumbnail,
+    ()=>data.data&&data.data[0]&&(data.data[0].video_url||data.data[0].url),
+    ()=>data.urls&&data.urls[0],
+    ()=>data.result&&data.result.url,
+    ()=>data.result&&data.result.video_url,
+    ()=>data.medias&&data.medias[0]&&data.medias[0].url,
+    ()=>data.links&&data.links[0],
+    ()=>{if(data.data&&Array.isArray(data.data)){for(const d of data.data){if(d.url)return d.url;if(d.video_url)return d.video_url;}}},
+  ];
+  for(const t of tries){
+    try{const v=t();if(v&&typeof v==='string'&&v.startsWith('http'))return v;}catch(e){}
+  }
+  return null;
+}
+
+function guessType(data,url){
+  if(data.type&&data.type.includes('video'))return'video';
+  if(data.type&&data.type.includes('image'))return'image';
+  if(url&&/\.mp4|\.mov|\.webm/i.test(url))return'video';
+  if(data.video_url)return'video';
+  return'image';
+}
+
+function getThumbnail(data){
+  return data.thumbnail||data.thumb||null;
+}
+
+function renderMedia(mediaUrl,type,thumb){
+  mediaWrap.innerHTML='';
+  if(type==='video'){
+    const v=document.createElement('video');
+    v.src=mediaUrl;v.controls=true;v.playsInline=true;
+    v.style.width='100%';v.style.maxHeight='480px';v.style.objectFit='contain';
+    if(thumb)v.poster=thumb;
+    mediaWrap.appendChild(v);
+  } else {
+    const img=document.createElement('img');
+    img.src=mediaUrl;img.alt='Preview';
+    img.style.width='100%';img.style.maxHeight='480px';img.style.objectFit='contain';
+    img.onerror=()=>{img.alt='Preview not available';};
+    mediaWrap.appendChild(img);
+  }
+  currentMediaUrl=mediaUrl;
+  currentType=type;
+  previewArea.classList.add('show');
+}
+
+async function fetchMedia(){
+  const raw=urlInput.value.trim();
+  hideError();
+  if(!raw){showError('Please enter an Instagram URL.');return;}
+  if(!raw.startsWith('http')){showError('Enter a valid URL starting with http.');return;}
+  showLoader();
+  const apiUrl=`https://mixy-ox-enjoy.vercel.app/?url=${encodeURIComponent(raw)}`;
+  try{
+    const res=await fetch(apiUrl);
+    if(!res.ok)throw new Error('API error '+res.status);
+    const data=await res.json();
+    hideLoader();
+    const mediaUrl=extractMediaUrl(data);
+    if(!mediaUrl){showError('No media found. Try a different link.');return;}
+    const type=guessType(data,mediaUrl);
+    const thumb=getThumbnail(data);
+    renderMedia(mediaUrl,type,thumb);
+  } catch(e){
+    hideLoader();
+    showError('Failed to fetch. Check the URL or try again.');
+  }
+}
+
+fetchBtn.addEventListener('click',fetchMedia);
+urlInput.addEventListener('keydown',e=>{if(e.key==='Enter')fetchMedia()});
+urlInput.addEventListener('input',()=>{if(errorBox.classList.contains('show'))hideError();});
+
+// DOWNLOAD
+dlBtn.addEventListener('click',async()=>{
+  if(!currentMediaUrl)return;
+  const name=`IGD_OX_${Date.now()}.${currentType==='video'?'mp4':'jpg'}`;
+  try{
+    const res=await fetch(currentMediaUrl);
+    const blob=await res.blob();
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=name;
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+  } catch(e){
+    // Fallback
+    const a=document.createElement('a');
+    a.href=currentMediaUrl;a.download=name;
+    document.body.appendChild(a);a.click();a.remove();
+  }
+});
+</script>
+</body>
+</html>
